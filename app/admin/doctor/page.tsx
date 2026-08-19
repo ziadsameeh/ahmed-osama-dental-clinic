@@ -25,17 +25,36 @@ export default function AdminDoctorPage() {
   }, []);
 
   async function save(e: React.FormEvent) {
-    e.preventDefault();
-    if (!doctor) return;
-    setSaving(true);
-    setMessage(null);
+  e.preventDefault();
+  if (!doctor) return;
+
+  setSaving(true);
+  setMessage(null);
+
+  try {
     const res = await fetch("/api/admin/doctor", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(doctor),
     });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      setMessage(data?.error ?? `Failed to save (${res.status})`);
+      return;
+    }
+
+    setDoctor(data.doctor);
+    setMessage("Saved successfully.");
+  } catch (error) {
+    setMessage(
+      error instanceof Error ? error.message : "Network error. Please try again."
+    );
+  } finally {
     setSaving(false);
-    setMessage(res.ok ? "Saved." : "Failed to save.");
+  }
+}
   }
 
   if (!doctor) return <p className="text-espresso-soft/70">Loading…</p>;
