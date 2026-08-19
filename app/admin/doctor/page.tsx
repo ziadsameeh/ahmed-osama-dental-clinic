@@ -27,6 +27,7 @@ export default function AdminDoctorPage() {
   async function save(e: React.FormEvent) {
   e.preventDefault();
   if (!doctor) return;
+  
 
   setSaving(true);
   setMessage(null);
@@ -54,8 +55,8 @@ export default function AdminDoctorPage() {
   } finally {
     setSaving(false);
   }
-}
   }
+
 
   if (!doctor) return <p className="text-espresso-soft/70">Loading…</p>;
 
