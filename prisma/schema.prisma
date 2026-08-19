@@ -1,0 +1,212 @@
+// Prisma schema for Dr. Ahmed Osama Sameeh — Dental & Orthodontic Website
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Admin authentication
+// ---------------------------------------------------------------------------
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Doctor profile (single-record table, managed from the admin dashboard)
+// ---------------------------------------------------------------------------
+model Doctor {
+  id             String   @id @default(cuid())
+  name           String   @default("Dr. Ahmed Osama Sameeh")
+  specialty      String   @default("Orthodontist")
+  bio            String?  @db.Text
+  education      String?  @db.Text
+  qualifications String?  @db.Text
+  hospital       String?
+  phone          String   @default("01092728428")
+  profileImage   String?
+  updatedAt      DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Clinic locations
+// ---------------------------------------------------------------------------
+model Location {
+  id             String              @id @default(cuid())
+  slug           String              @unique
+  name           String
+  clinicName     String?
+  address        String?
+  phone          String?
+  mapsUrl        String?
+  isActive       Boolean             @default(true)
+  appointmentMin Int                 @default(30) // appointment duration in minutes
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  weeklyAvailability WeeklyAvailability[]
+  workingHours       WorkingHour[]
+  blockedDates       BlockedDate[]
+  appointments       Appointment[]
+}
+
+// Which weekdays a location is open. weekday: 0=Sunday ... 6=Saturday
+model WeeklyAvailability {
+  id         String   @id @default(cuid())
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  weekday    Int // 0-6, 0 = Sunday
+  isAvailable Boolean @default(false)
+
+  @@unique([locationId, weekday])
+}
+
+// Admin-configurable working hours per location
+model WorkingHour {
+  id           String   @id @default(cuid())
+  locationId   String
+  location     Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  openTime     String   @default("10:00") // "HH:mm" 24h
+  closeTime    String   @default("18:00")
+  breakStart   String? // "HH:mm"
+  breakEnd     String?
+  slotMinutes  Int      @default(30)
+  updatedAt    DateTime @updatedAt
+
+  @@unique([locationId])
+}
+
+model BlockedDate {
+  id         String   @id @default(cuid())
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  date       DateTime @db.Date
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@unique([locationId, date])
+}
+
+// ---------------------------------------------------------------------------
+// Services
+// ---------------------------------------------------------------------------
+model Service {
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  name              String
+  description       String?  @db.Text
+  image             String?
+  price             Decimal? @db.Decimal(10, 2)
+  estimatedDuration  Int? // minutes
+  isActive          Boolean  @default(true)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  appointments Appointment[]
+}
+
+// ---------------------------------------------------------------------------
+// Patients & Appointments
+// ---------------------------------------------------------------------------
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+model Patient {
+  id        String   @id @default(cuid())
+  fullName  String
+  age       Int
+  gender    Gender
+  phone     String
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments Appointment[]
+
+  @@index([phone])
+}
+
+model Appointment {
+  id              String            @id @default(cuid())
+  patientId       String
+  patient         Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  locationId      String
+  location        Location          @relation(fields: [locationId], references: [id])
+  serviceId       String
+  service         Service           @relation(fields: [serviceId], references: [id])
+  appointmentDate DateTime          @db.Date
+  appointmentTime String // "HH:mm" 24h
+  status          AppointmentStatus @default(PENDING)
+  notes           String?           @db.Text
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Prevents two patients from ever holding the same location+date+time
+  // for any appointment that isn't cancelled. Cancelled appointments free
+  // the slot; enforced additionally in application logic via transaction.
+  @@unique([locationId, appointmentDate, appointmentTime], name: "location_date_time_unique")
+  @@index([locationId, appointmentDate])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// Content management
+// ---------------------------------------------------------------------------
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id           String   @id @default(cuid())
+  patientName  String
+  content      String   @db.Text
+  rating       Int?     // 1-5, optional
+  isPublished  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model SiteSettings {
+  id                String  @id @default("singleton")
+  siteName          String  @default("Dr. Ahmed Osama Sameeh — Dental & Orthodontic Care")
+  mainPhone         String  @default("01092728428")
+  metaDescription   String?
+  updatedAt         DateTime @updatedAt
+}

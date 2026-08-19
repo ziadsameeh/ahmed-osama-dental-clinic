@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+:root {
+  --color-cream: #f7f2e9;
+  --color-cream-dark: #efe6d6;
+  --color-warm-white: #fffdf9;
+  --color-espresso: #2b2019;
+  --color-espresso-soft: #4a382a;
+  --color-coffee: #6b4a2e;
+  --color-coffee-dark: #4e3520;
+  --color-latte: #c9a576;
+  --color-latte-light: #e7d7bd;
+  --color-sage: #74806a;
+  --color-sage-light: #e6ebe0;
+  --color-error: #9b3d34;
+}
+
+@theme inline {
+  --color-cream: var(--color-cream);
+  --color-cream-dark: var(--color-cream-dark);
+  --color-warm-white: var(--color-warm-white);
+  --color-espresso: var(--color-espresso);
+  --color-espresso-soft: var(--color-espresso-soft);
+  --color-coffee: var(--color-coffee);
+  --color-coffee-dark: var(--color-coffee-dark);
+  --color-latte: var(--color-latte);
+  --color-latte-light: var(--color-latte-light);
+  --color-sage: var(--color-sage);
+  --color-sage-light: var(--color-sage-light);
+  --color-error: var(--color-error);
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-espresso);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display), ui-serif, Georgia, serif;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-coffee);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
