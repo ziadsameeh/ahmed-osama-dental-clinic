@@ -8,7 +8,7 @@ import AppointmentCTA from "@/components/AppointmentCTA";
 import FaqSection from "@/components/FaqSection";
 import Testimonials from "@/components/Testimonials";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [doctor, services, locations, faqs, testimonials] = await Promise.all([

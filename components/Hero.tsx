@@ -10,7 +10,7 @@ export default function Hero({ doctorImage }: { doctorImage: string }) {
           alt="Dr. Ahmed Osama Sameeh, Orthodontist"
           fill
           priority
-          className="object-cover object-top opacity-90"
+          className="object-contain object-top opacity-90"
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/70 to-espresso/10" />
