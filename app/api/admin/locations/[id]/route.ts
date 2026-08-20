@@ -36,8 +36,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (body.workingHours) {
     const parsed = workingHourSchema.safeParse(body.workingHours);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid working hours" }, { status: 400 });
-    }
+  console.error("WORKING HOURS VALIDATION ERROR:", parsed.error.issues);
+
+  return NextResponse.json(
+    {
+      error: "Invalid working hours",
+      details: parsed.error.issues,
+    },
+    { status: 400 }
+  );
+}
     const wh = parsed.data;
     await prisma.workingHour.upsert({
       where: { locationId: id },
