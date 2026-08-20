@@ -66,7 +66,7 @@ export default function AdminLocationsPage() {
               breakEnd: loc.workingHours.breakEnd || null,
               slotMinutes: Number(loc.workingHours.slotMinutes),
             }
-          : undefined,
+          : null,
       }),
     });
     setSavingId(null);
