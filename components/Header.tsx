@@ -41,7 +41,7 @@ export default function Header() {
             href="tel:01092728428"
             className="text-sm font-medium text-espresso-soft transition hover:text-coffee"
           >
-            01092728428
+            Call
           </a>
           <Link
             href="/book"

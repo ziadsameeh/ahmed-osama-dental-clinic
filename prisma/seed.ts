@@ -69,7 +69,7 @@ async function main() {
     },
     {
       slug: "zayed",
-      name: "Zayed",
+      name: "Shiekh Zayed",
       clinicName: "[TO BE PROVIDED]",
       address: "[TO BE PROVIDED]",
       phone: "01092728428",

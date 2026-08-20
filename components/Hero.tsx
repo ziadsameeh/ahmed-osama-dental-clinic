@@ -25,9 +25,8 @@ export default function Hero({ doctorImage }: { doctorImage: string }) {
           Dr. Ahmed Osama Sameeh
         </h1>
         <p className="mt-5 max-w-lg text-base text-cream/85 sm:text-lg">
-          Orthodontic and general dental care across four clinics — Mokattam, Zayed,
-          Kafr El-Zayat and Tanta. A graduate of Tanta University, practicing at
-          Kafr El-Zayat Hospital.
+          Providing Orthodontic and general dental care across four clinics in Mokattam, Sheikh Zayed, Kafr El-Zayat, and Tanta, with a focus on precise, comfortable, and personalized treatment for every patient.
+
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -41,7 +40,7 @@ export default function Hero({ doctorImage }: { doctorImage: string }) {
             href="tel:01092728428"
             className="rounded-full border border-cream/40 px-7 py-3.5 text-sm font-semibold text-warm-white transition hover:bg-warm-white/10"
           >
-            Call 01092728428
+            Call 
           </a>
         </div>
       </div>
