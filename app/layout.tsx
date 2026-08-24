@@ -27,11 +27,11 @@ export const metadata: Metadata = {
     google: "MtS7-2HiRD-X1iWZccNyn0-2XIJJAbaorbywiZuiyv0",
   },
   title: {
-    default: "Dr. Ahmed Osama Sameeh — Orthodontist | Mokattam, Zayed, Kafr El-Zayat, Tanta",
+    default: "Dr. Ahmed Osama Sameeh | Orthodontist & Dentist in Egypt",
     template: "%s | Dr. Ahmed Osama Sameeh",
   },
   description:
-    "Book an appointment with Dr. Ahmed Osama Sameeh, Orthodontist, across four clinics in Mokattam, Zayed, Kafr El-Zayat and Tanta. Orthodontics, fillings, cleaning and whitening.",
+  "Dr. Ahmed Osama Sameeh is an orthodontist and dentist providing orthodontics, dental fillings, cleaning and teeth whitening in Mokattam, Sheikh Zayed, Kafr El-Zayat and Tanta, Egypt.",
   openGraph: {
     title: "Dr. Ahmed Osama Sameeh — Orthodontist",
     description:
