@@ -23,6 +23,9 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  verification: {
+    google: "MtS7-2HiRD-X1iWZccNyn0-2XIJJAbaorbywiZuiyv0",
+  },
   title: {
     default: "Dr. Ahmed Osama Sameeh — Orthodontist | Mokattam, Zayed, Kafr El-Zayat, Tanta",
     template: "%s | Dr. Ahmed Osama Sameeh",
