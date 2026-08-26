@@ -149,6 +149,7 @@ model Patient {
 
 model Appointment {
   id              String            @id @default(cuid())
+  manageToken     String            @unique
   patientId       String
   patient         Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
   locationId      String

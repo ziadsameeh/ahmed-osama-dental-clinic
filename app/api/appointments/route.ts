@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { bookAppointmentSchema } from "@/lib/validation";
 import { getAvailableSlots, isDateAvailableForLocation, parseDateKey } from "@/lib/availability";
+import { sendAdminNewBookingNotification, sendPatientBookingConfirmation } from "@/lib/email";
 
 export async function POST(req: Request) {
   let body: unknown;
@@ -21,7 +22,6 @@ export async function POST(req: Request) {
   const data = parsed.data;
   const date = parseDateKey(data.date);
 
-  // --- Re-validate everything server-side. Never trust the client. ---
   const [location, service] = await Promise.all([
     prisma.location.findUnique({ where: { id: data.locationId } }),
     prisma.service.findUnique({ where: { id: data.serviceId } }),
@@ -53,9 +53,6 @@ export async function POST(req: Request) {
 
   try {
     const appointment = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // Re-check for a collision *inside* the transaction, then rely on the
-      // unique(locationId, appointmentDate, appointmentTime) constraint as
-      // the final, database-level guarantee against double booking.
       const clash = await tx.appointment.findFirst({
         where: {
           locationId: data.locationId,
@@ -86,11 +83,26 @@ export async function POST(req: Request) {
           appointmentDate: date,
           appointmentTime: data.time,
           notes: data.notes || null,
-          status: "PENDING",
+                    manageToken: crypto.randomUUID(),
+                    status: "PENDING",
         },
         include: { location: true, service: true, patient: true },
       });
     });
+
+    const emailPayload = {
+      id: appointment.id,
+      appointmentDate: data.date,
+      appointmentTime: appointment.appointmentTime,
+      manageToken: appointment.manageToken,
+      patient: appointment.patient,
+      location: appointment.location,
+      service: appointment.service,
+    };
+    await Promise.all([
+      sendPatientBookingConfirmation(emailPayload),
+      sendAdminNewBookingNotification(emailPayload),
+    ]);
 
     return NextResponse.json({ appointment }, { status: 201 });
   } catch (err) {
@@ -101,7 +113,6 @@ export async function POST(req: Request) {
       );
     }
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      // Unique constraint on (locationId, appointmentDate, appointmentTime)
       return NextResponse.json(
         { error: "Sorry, this appointment time is no longer available. Please select another time." },
         { status: 409 }

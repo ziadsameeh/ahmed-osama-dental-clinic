@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
 type Appointment = {
   id: string;
@@ -16,6 +17,17 @@ type Appointment = {
 const STATUSES = ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED", "NO_SHOW"];
 
 export default function AdminAppointmentsPage() {
+  return (
+    <Suspense fallback={<p className="text-espresso-soft/70">Loading…</p>}>
+      <AdminAppointmentsPageInner />
+    </Suspense>
+  );
+}
+
+function AdminAppointmentsPageInner() {
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get("highlight");
+  const highlightRef = useRef<HTMLTableRowElement | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -32,6 +44,7 @@ export default function AdminAppointmentsPage() {
     if (search) params.set("search", search);
     if (status) params.set("status", status);
     if (date) params.set("date", date);
+
     fetch(`/api/admin/appointments?${params.toString()}`)
       .then((r) => r.json())
       .then((data) => setAppointments(data.appointments ?? []))
@@ -43,40 +56,61 @@ export default function AdminAppointmentsPage() {
     return () => clearTimeout(t);
   }, [load]);
 
+  useEffect(() => {
+    if (highlightId && appointments.length > 0) {
+      highlightRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [highlightId, appointments]);
+
   async function updateStatus(id: string, newStatus: string) {
     setActionError(null);
+
     const res = await fetch(`/api/admin/appointments/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),
     });
+
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setActionError(data.error ?? "Failed to update status.");
       return;
     }
+
     load();
   }
 
   async function submitReschedule(id: string) {
     setActionError(null);
+
     const res = await fetch(`/api/admin/appointments/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date: rescheduleDate, time: rescheduleTime }),
+      body: JSON.stringify({
+        date: rescheduleDate,
+        time: rescheduleTime,
+      }),
     });
+
     const data = await res.json();
+
     if (!res.ok) {
       setActionError(data.error ?? "Failed to reschedule.");
       return;
     }
+
     setRescheduleId(null);
     load();
   }
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-semibold text-espresso">Appointments</h1>
+      <h1 className="font-display text-2xl font-semibold text-espresso">
+        Appointments
+      </h1>
 
       <div className="mt-5 flex flex-wrap gap-3">
         <input
@@ -85,6 +119,7 @@ export default function AdminAppointmentsPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="rounded-xl border border-latte-light bg-warm-white px-4 py-2.5 text-sm"
         />
+
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
@@ -92,9 +127,12 @@ export default function AdminAppointmentsPage() {
         >
           <option value="">All statuses</option>
           {STATUSES.map((s) => (
-            <option key={s} value={s}>{s}</option>
+            <option key={s} value={s}>
+              {s}
+            </option>
           ))}
         </select>
+
         <input
           type="date"
           value={date}
@@ -103,7 +141,11 @@ export default function AdminAppointmentsPage() {
         />
       </div>
 
-      {actionError && <p className="mt-4 rounded-xl bg-error/10 p-3 text-sm text-error">{actionError}</p>}
+      {actionError && (
+        <p className="mt-4 rounded-xl bg-error/10 p-3 text-sm text-error">
+          {actionError}
+        </p>
+      )}
 
       <div className="mt-5 overflow-x-auto rounded-2xl border border-latte-light bg-warm-white">
         <table className="w-full min-w-[900px] text-sm">
@@ -118,19 +160,40 @@ export default function AdminAppointmentsPage() {
               <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {appointments.map((a) => (
-              <tr key={a.id} className="border-b border-latte-light/60 align-top last:border-0">
+              <tr
+                key={a.id}
+                ref={a.id === highlightId ? highlightRef : null}
+                className={`border-b border-latte-light/60 align-top last:border-0 ${
+                  a.id === highlightId
+                    ? "bg-latte-light/50 ring-2 ring-inset ring-coffee"
+                    : ""
+                }`}
+              >
                 <td className="px-4 py-3">
-                  <p className="font-medium text-espresso">{a.patient.fullName}</p>
-                  <p className="text-xs text-espresso-soft/70">{a.patient.age} · {a.patient.gender}</p>
+                  <p className="font-medium text-espresso">
+                    {a.patient.fullName}
+                  </p>
+                  <p className="text-xs text-espresso-soft/70">
+                    {a.patient.age} · {a.patient.gender}
+                  </p>
                 </td>
+
                 <td className="px-4 py-3">
                   <p>{a.patient.phone}</p>
-                  {a.patient.email && <p className="text-xs text-espresso-soft/70">{a.patient.email}</p>}
+                  {a.patient.email && (
+                    <p className="text-xs text-espresso-soft/70">
+                      {a.patient.email}
+                    </p>
+                  )}
                 </td>
+
                 <td className="px-4 py-3">{a.location.name}</td>
+
                 <td className="px-4 py-3">{a.service.name}</td>
+
                 <td className="px-4 py-3">
                   {rescheduleId === a.id ? (
                     <div className="flex flex-col gap-1.5">
@@ -140,12 +203,14 @@ export default function AdminAppointmentsPage() {
                         onChange={(e) => setRescheduleDate(e.target.value)}
                         className="rounded-lg border border-latte-light px-2 py-1 text-xs"
                       />
+
                       <input
                         type="time"
                         value={rescheduleTime}
                         onChange={(e) => setRescheduleTime(e.target.value)}
                         className="rounded-lg border border-latte-light px-2 py-1 text-xs"
                       />
+
                       <div className="flex gap-1.5">
                         <button
                           onClick={() => submitReschedule(a.id)}
@@ -153,6 +218,7 @@ export default function AdminAppointmentsPage() {
                         >
                           Save
                         </button>
+
                         <button
                           onClick={() => setRescheduleId(null)}
                           className="rounded-lg border border-latte-light px-2 py-1 text-xs"
@@ -167,24 +233,35 @@ export default function AdminAppointmentsPage() {
                     </>
                   )}
                 </td>
+
                 <td className="px-4 py-3">
-                  <span className="rounded-full bg-cream-dark px-2.5 py-1 text-xs font-medium">{a.status}</span>
+                  <span className="rounded-full bg-cream-dark px-2.5 py-1 text-xs font-medium">
+                    {a.status}
+                  </span>
                 </td>
+
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1.5">
                     <select
                       value={a.status}
-                      onChange={(e) => updateStatus(a.id, e.target.value)}
+                      onChange={(e) =>
+                        updateStatus(a.id, e.target.value)
+                      }
                       className="rounded-lg border border-latte-light px-2 py-1 text-xs"
                     >
                       {STATUSES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
                       ))}
                     </select>
+
                     <button
                       onClick={() => {
                         setRescheduleId(a.id);
-                        setRescheduleDate(a.appointmentDate.slice(0, 10));
+                        setRescheduleDate(
+                          a.appointmentDate.slice(0, 10)
+                        );
                         setRescheduleTime(a.appointmentTime);
                       }}
                       className="rounded-lg border border-latte-light px-2 py-1 text-xs"
@@ -195,9 +272,13 @@ export default function AdminAppointmentsPage() {
                 </td>
               </tr>
             ))}
+
             {!loading && appointments.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-espresso-soft">
+                <td
+                  colSpan={7}
+                  className="px-4 py-8 text-center text-espresso-soft"
+                >
                   No appointments match these filters.
                 </td>
               </tr>

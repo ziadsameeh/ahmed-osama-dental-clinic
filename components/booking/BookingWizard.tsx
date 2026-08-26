@@ -110,14 +110,31 @@ export default function BookingWizard() {
 
   function validateForm() {
     const errors: Record<string, string> = {};
-    if (form.fullName.trim().length < 2) errors.fullName = "Please enter your full name.";
+
+    if (form.fullName.trim().length < 2) {
+      errors.fullName = "Please enter your full name.";
+    }
+
     const ageNum = Number(form.age);
+
     if (!form.age || !Number.isInteger(ageNum) || ageNum <= 0 || ageNum > 120) {
       errors.age = "Please enter a valid age.";
     }
-    if (!form.gender) errors.gender = "Please select a gender.";
-    if (!/^(\+?\d[\d\s-]{7,14}\d)$/.test(form.phone.trim())) errors.phone = "Please enter a valid phone number.";
-    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) errors.email = "Please enter a valid email.";
+
+    if (!form.gender) {
+      errors.gender = "Please select a gender.";
+    }
+
+    if (!/^(\+?\d[\d\s-]{7,14}\d)$/.test(form.phone.trim())) {
+      errors.phone = "Please enter a valid phone number.";
+    }
+
+    if (!form.email.trim()) {
+      errors.email = "Please enter your email.";
+    } else if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) {
+      errors.email = "Please enter a valid email.";
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -391,19 +408,22 @@ export default function BookingWizard() {
             {formErrors.phone && <p className="mt-1 text-sm text-error">{formErrors.phone}</p>}
           </div>
 
+          
           <div>
-            <label htmlFor="email" className="mb-1 block text-sm font-medium text-espresso">
-              Email <span className="text-espresso-soft/60">(optional)</span>
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full rounded-xl border border-latte-light bg-warm-white px-4 py-3 text-sm"
-            />
-            {formErrors.email && <p className="mt-1 text-sm text-error">{formErrors.email}</p>}
-          </div>
+  <label htmlFor="email" className="mb-1 block text-sm font-medium text-espresso">
+    Email
+  </label>
+  <input
+    id="email"
+    type="email"
+    value={form.email}
+    onChange={(e) => setForm({ ...form, email: e.target.value })}
+    className="w-full rounded-xl border border-latte-light bg-warm-white px-4 py-3 text-sm"
+    required
+  />
+  {formErrors.email && <p className="mt-1 text-sm text-error">{formErrors.email}</p>}
+</div>
+          
 
           <div>
             <label htmlFor="notes" className="mb-1 block text-sm font-medium text-espresso">

@@ -44,7 +44,7 @@ export default function Locations({
           Four clinics, one doctor
         </h2>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2">
+        <div className="mt-10 grid items-start gap-5 sm:grid-cols-2">
           {locations.map((location) => {
             const byWeekday = new Map(
               location.weeklyAvailability.map((w) => [
